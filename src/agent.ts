@@ -302,23 +302,29 @@ export class Agent {
     this._startDrag(e);
   }
 
+  private _dragging = false;
+  private _dragStartX = 0;
+  private _dragStartY = 0;
+  private static readonly DRAG_THRESHOLD = 5;
+
   private _startDrag(e: MouseEvent): void {
-    this.pause();
-    this._balloon.hide(true);
+    this._dragging = false;
+    this._dragStartX = e.clientX;
+    this._dragStartY = e.clientY;
 
     const rect = this._el.getBoundingClientRect();
     this._offset = {
       top: e.clientY - rect.top,
       left: e.clientX - rect.left,
     };
+    this._targetX = rect.left;
+    this._targetY = rect.top;
 
     this._moveHandle = (ev: MouseEvent) => this._dragMove(ev);
     this._upHandle = () => this._finishDrag();
 
     window.addEventListener('mousemove', this._moveHandle);
     window.addEventListener('mouseup', this._upHandle);
-
-    this._dragUpdateLoop = setTimeout(() => this._updateLocation(), 10);
   }
 
   private _updateLocation(): void {
@@ -329,6 +335,18 @@ export class Agent {
 
   private _dragMove(e: MouseEvent): void {
     e.preventDefault();
+    const dx = e.clientX - this._dragStartX;
+    const dy = e.clientY - this._dragStartY;
+
+    // Only start dragging after threshold
+    if (!this._dragging) {
+      if (Math.abs(dx) < Agent.DRAG_THRESHOLD && Math.abs(dy) < Agent.DRAG_THRESHOLD) return;
+      this._dragging = true;
+      this.pause();
+      this._balloon.hide(true);
+      this._dragUpdateLoop = setTimeout(() => this._updateLocation(), 10);
+    }
+
     this._targetX = e.clientX - this._offset.left;
     this._targetY = e.clientY - this._offset.top;
   }
@@ -337,9 +355,15 @@ export class Agent {
     if (this._dragUpdateLoop) clearTimeout(this._dragUpdateLoop);
     if (this._moveHandle) window.removeEventListener('mousemove', this._moveHandle);
     if (this._upHandle) window.removeEventListener('mouseup', this._upHandle);
-    this._balloon.show();
-    this.reposition();
-    this.resume();
+
+    if (this._dragging) {
+      // Was a real drag — reposition and resume
+      this._balloon.show();
+      this.reposition();
+      this.resume();
+    }
+    // If not dragging, it was just a click — do nothing (dblclick handler covers that)
+    this._dragging = false;
   }
 
   private _addToQueue(func: (complete: () => void) => void): void {
