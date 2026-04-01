@@ -124,9 +124,9 @@ export class Agent {
 
   show(fast?: boolean): boolean | void {
     this._hidden = false;
+    this._el.style.display = '';
 
     if (fast) {
-      this._el.style.display = '';
       this.resume();
       this._onQueueEmpty();
       return;
