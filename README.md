@@ -1,5 +1,9 @@
 # Clippy Agent
 
+<p align="center">
+  <img src="assets/clippy-hero.png" alt="Clippy on GitHub" width="400">
+</p>
+
 **Add Clippy or his friends to any website for instant nostalgia. Now with optional AI powers.**
 
 Modernized fork of the original [ClippyJS](https://github.com/clippyjs/clippy.js) — zero dependencies, TypeScript, ES modules. Includes a Chrome Extension with optional AI features powered by any OpenAI-compatible gateway.
