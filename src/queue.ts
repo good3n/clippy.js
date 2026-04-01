@@ -27,6 +27,10 @@ export class Queue {
     f(() => this.next());
   }
 
+  get active(): boolean {
+    return this._active || this._queue.length > 0;
+  }
+
   clear(): void {
     this._queue = [];
   }

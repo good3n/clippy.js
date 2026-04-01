@@ -817,7 +817,7 @@
 
       <!-- Custom speech -->
       <div class="demo-speak">
-        <input type="text" id="speak-input" class="input" placeholder="Type a message for the agenthttps://unpkg.com/clippy-agent@2.0.4." value="It looks like you're building a website!">
+        <input type="text" id="speak-input" class="input" placeholder="Type a message for the agent..." value="It looks like you're building a website!">
         <button class="btn" id="speak-btn">Say it!</button>
       </div>
 
@@ -825,7 +825,7 @@
       <div class="demo-anim-row">
         <label for="anim-select">Animation:</label>
         <select id="anim-select" class="select">
-          <option value="">Load an agent firsthttps://unpkg.com/clippy-agent@2.0.4.</option>
+          <option value="">Load an agent first...</option>
         </select>
         <button class="btn" id="play-anim-btn">Play</button>
       </div>
@@ -896,7 +896,7 @@ agent.<span class="fn">animate</span>();
 agent.<span class="fn">moveTo</span>(<span class="num">200</span>, <span class="num">300</span>);
 
 <span class="cmt">// All actions are queued automatically</span>
-agent.<span class="fn">speak</span>(<span class="str">'First thishttps://unpkg.com/clippy-agent@2.0.4.'</span>);
+agent.<span class="fn">speak</span>(<span class="str">'First this...'</span>);
 agent.<span class="fn">play</span>(<span class="str">'Thinking'</span>);
 agent.<span class="fn">speak</span>(<span class="str">'Then this!'</span>);
 
@@ -974,7 +974,8 @@ agent.<span class="fn">destroy</span>();</div>
      JAVASCRIPT
      ═══════════════════════════════════════════ -->
 <script type="module">
-  const CDN = 'https://unpkg.com/clippy-agent@2.0.4';
+  const CDN = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? '' : 'https://unpkg.com/clippy-agent@2.0.4';
 
   // ─── State ───
   let currentAgent = null;
@@ -1045,8 +1046,8 @@ agent.<span class="fn">destroy</span>();</div>
     if (isLoading) return;
     isLoading = true;
 
-    setStatus(`Loading ${name}https://unpkg.com/clippy-agent@2.0.4.`, 'loading');
-    setStatusBar(`Loading ${name}https://unpkg.com/clippy-agent@2.0.4.`);
+    setStatus(`Loading ${name}...`, 'loading');
+    setStatusBar(`Loading ${name}...`);
 
     // Destroy previous
     if (currentAgent) {
@@ -1094,7 +1095,7 @@ agent.<span class="fn">destroy</span>();</div>
 
   function populateAnimations(anims) {
     animSelect.innerHTML = '';
-    const sorted = [https://unpkg.com/clippy-agent@2.0.4.anims].sort();
+    const sorted = [...anims].sort();
     for (const a of sorted) {
       const opt = document.createElement('option');
       opt.value = a;
@@ -1159,11 +1160,11 @@ agent.<span class="fn">destroy</span>();</div>
         case 'speak':
           const q = randomQuotes[Math.floor(Math.random() * randomQuotes.length)];
           currentAgent.speak(q);
-          setStatus(`Speakinghttps://unpkg.com/clippy-agent@2.0.4.`, '');
+          setStatus(`Speaking...`, '');
           break;
         case 'animate':
           currentAgent.animate();
-          setStatus('Playing random animationhttps://unpkg.com/clippy-agent@2.0.4.', '');
+          setStatus('Playing random animation...', '');
           break;
         case 'wave':
           if (currentAgent.hasAnimation('Wave')) {
@@ -1182,8 +1183,8 @@ agent.<span class="fn">destroy</span>();</div>
             currentAgent.play('Thinking');
             setStatus('Playing: Thinking', '');
           } else {
-            currentAgent.speak("Hmm, let me think about thathttps://unpkg.com/clippy-agent@2.0.4.");
-            setStatus('Speakinghttps://unpkg.com/clippy-agent@2.0.4.', '');
+            currentAgent.speak("Hmm, let me think about that...");
+            setStatus('Speaking...', '');
           }
           break;
         case 'excited':
@@ -1192,7 +1193,7 @@ agent.<span class="fn">destroy</span>();</div>
             setStatus('Playing: Congratulate', '');
           } else {
             currentAgent.animate();
-            setStatus('Playing random animationhttps://unpkg.com/clippy-agent@2.0.4.', '');
+            setStatus('Playing random animation...', '');
           }
           break;
         case 'write':
@@ -1201,7 +1202,7 @@ agent.<span class="fn">destroy</span>();</div>
             setStatus('Playing: Writing', '');
           } else {
             currentAgent.animate();
-            setStatus('Playing random animationhttps://unpkg.com/clippy-agent@2.0.4.', '');
+            setStatus('Playing random animation...', '');
           }
           break;
         case 'hide':

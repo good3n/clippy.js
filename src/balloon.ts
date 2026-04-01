@@ -77,8 +77,8 @@ export class Balloon {
         top = 0;
     }
 
-    this._balloon.style.top = top + window.scrollY + 'px';
-    this._balloon.style.left = left + window.scrollX + 'px';
+    this._balloon.style.top = top + 'px';
+    this._balloon.style.left = left + 'px';
     this._balloon.classList.add('clippy-' + side);
   }
 

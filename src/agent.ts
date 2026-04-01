@@ -9,8 +9,7 @@ export class Agent {
   private _balloon: Balloon;
   private _queue: Queue;
   private _hidden = false;
-  private _idleResolve: (() => void) | null = null;
-  private _idlePromise: Promise<void> | null = null;
+  private _idleRestartTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Drag state
   private _offset = { top: 0, left: 0 };
@@ -20,6 +19,7 @@ export class Agent {
   private _upHandle: ((e: MouseEvent) => void) | null = null;
   private _dragUpdateLoop: ReturnType<typeof setTimeout> | null = null;
   private _dragging = false;
+  private _paused = false;
   private _dragStartX = 0;
   private _dragStartY = 0;
   private static readonly DRAG_THRESHOLD = 5;
@@ -197,11 +197,13 @@ export class Agent {
   }
 
   pause(): void {
+    this._paused = true;
     this._animator.pause();
     this._balloon.pause();
   }
 
   resume(): void {
+    this._paused = false;
     this._animator.resume();
     this._balloon.resume();
   }
@@ -216,19 +218,21 @@ export class Agent {
     if (this._moveHandle) window.removeEventListener('mousemove', this._moveHandle);
     if (this._upHandle) window.removeEventListener('mouseup', this._upHandle);
     if (this._dragUpdateLoop) clearTimeout(this._dragUpdateLoop);
+    if (this._idleRestartTimer) clearTimeout(this._idleRestartTimer);
   }
 
   // ─── Internals ───
 
   private _playInternal(animation: string, callback?: (_name: string, state: AnimatorState) => void): void {
-    // If idle is playing, wait for it to finish then play
-    if (this._isIdleAnimation() && this._idlePromise) {
-      this._animator.exitAnimation(); // Signal idle to stop
-      this._idlePromise.then(() => {
-        this._animator.showAnimation(animation, callback);
-      });
-      return;
+    // Cancel any pending idle restart so it can't overwrite this animation
+    if (this._idleRestartTimer) {
+      clearTimeout(this._idleRestartTimer);
+      this._idleRestartTimer = null;
     }
+
+    // Kill idle immediately — don't wait for it to gracefully exit.
+    // showAnimation() will clear the idle's loop, and we just play
+    // the new animation directly. Idle is disposable.
     this._animator.showAnimation(animation, callback);
   }
 
@@ -248,24 +252,18 @@ export class Agent {
   }
 
   private _onQueueEmpty(): void {
-    if (this._hidden || this._isIdleAnimation()) return;
+    if (this._hidden || this._paused || this._isIdleAnimation() || this._queue.active) return;
     const idleAnim = this._getIdleAnimation();
     if (!idleAnim) return;
 
-    this._idlePromise = new Promise<void>((resolve) => {
-      this._idleResolve = resolve;
-    });
-
     this._animator.showAnimation(idleAnim, (_name, state) => {
       if (state === AnimatorStates.EXITED) {
-        if (this._idleResolve) {
-          this._idleResolve();
-          this._idleResolve = null;
-        }
-        this._idlePromise = null;
         // Queue next idle after a short delay
         if (!this._hidden) {
-          setTimeout(() => this._onQueueEmpty(), 1000);
+          this._idleRestartTimer = setTimeout(() => {
+            this._idleRestartTimer = null;
+            this._onQueueEmpty();
+          }, 1000);
         }
       }
     });
