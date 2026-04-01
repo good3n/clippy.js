@@ -9,13 +9,20 @@ export class Agent {
   private _balloon: Balloon;
   private _queue: Queue;
   private _hidden = false;
-  private _idlePromise: { resolve: () => void; promise: Promise<void> } | undefined;
+  private _idleResolve: (() => void) | null = null;
+  private _idlePromise: Promise<void> | null = null;
+
+  // Drag state
   private _offset = { top: 0, left: 0 };
   private _targetX = 0;
   private _targetY = 0;
-  private _moveHandle: ((e: MouseEvent) => void) | undefined;
-  private _upHandle: ((e: MouseEvent) => void) | undefined;
-  private _dragUpdateLoop: ReturnType<typeof setTimeout> | undefined;
+  private _moveHandle: ((e: MouseEvent) => void) | null = null;
+  private _upHandle: ((e: MouseEvent) => void) | null = null;
+  private _dragUpdateLoop: ReturnType<typeof setTimeout> | null = null;
+  private _dragging = false;
+  private _dragStartX = 0;
+  private _dragStartY = 0;
+  private static readonly DRAG_THRESHOLD = 5;
 
   readonly path: string;
 
@@ -52,7 +59,6 @@ export class Agent {
 
     if (fast) {
       this._el.style.display = 'none';
-      this.stop();
       this.pause();
       if (callback) callback();
       return;
@@ -143,7 +149,6 @@ export class Agent {
       this._el.style.left = left + 'px';
     }
 
-    this._el.style.position = 'fixed';
     this.resume();
     return this.play('Show');
   }
@@ -172,7 +177,7 @@ export class Agent {
 
   stop(): void {
     this._queue.clear();
-    this._animator.exitAnimation();
+    this._animator.pause(); // Actually kills the timer
     this._balloon.hide();
   }
 
@@ -204,16 +209,23 @@ export class Agent {
   /** Remove the agent from the DOM entirely */
   destroy(): void {
     this.stop();
+    this._animator.destroy();
     this._el.remove();
     window.removeEventListener('resize', this._resizeHandler);
+    // Clean up any lingering drag handlers
+    if (this._moveHandle) window.removeEventListener('mousemove', this._moveHandle);
+    if (this._upHandle) window.removeEventListener('mouseup', this._upHandle);
+    if (this._dragUpdateLoop) clearTimeout(this._dragUpdateLoop);
   }
 
   // ─── Internals ───
 
   private _playInternal(animation: string, callback?: (_name: string, state: AnimatorState) => void): void {
+    // If idle is playing, wait for it to finish then play
     if (this._isIdleAnimation() && this._idlePromise) {
-      this._idlePromise.promise.then(() => {
-        this._playInternal(animation, callback);
+      this._animator.exitAnimation(); // Signal idle to stop
+      this._idlePromise.then(() => {
+        this._animator.showAnimation(animation, callback);
       });
       return;
     }
@@ -240,13 +252,21 @@ export class Agent {
     const idleAnim = this._getIdleAnimation();
     if (!idleAnim) return;
 
-    let resolve: () => void;
-    const promise = new Promise<void>((r) => { resolve = r; });
-    this._idlePromise = { resolve: resolve!, promise };
+    this._idlePromise = new Promise<void>((resolve) => {
+      this._idleResolve = resolve;
+    });
 
     this._animator.showAnimation(idleAnim, (_name, state) => {
       if (state === AnimatorStates.EXITED) {
-        this._idlePromise?.resolve();
+        if (this._idleResolve) {
+          this._idleResolve();
+          this._idleResolve = null;
+        }
+        this._idlePromise = null;
+        // Queue next idle after a short delay
+        if (!this._hidden) {
+          setTimeout(() => this._onQueueEmpty(), 1000);
+        }
       }
     });
   }
@@ -292,8 +312,9 @@ export class Agent {
     if (left - m < 0) left = m;
     else if (left + rect.width + m > window.innerWidth) left = window.innerWidth - rect.width - m;
 
-    this._el.style.top = top + window.scrollY + 'px';
-    this._el.style.left = left + window.scrollX + 'px';
+    // position:fixed = viewport-relative, no scroll offset
+    this._el.style.top = top + 'px';
+    this._el.style.left = left + 'px';
     this._balloon.reposition();
   }
 
@@ -301,11 +322,6 @@ export class Agent {
     e.preventDefault();
     this._startDrag(e);
   }
-
-  private _dragging = false;
-  private _dragStartX = 0;
-  private _dragStartY = 0;
-  private static readonly DRAG_THRESHOLD = 5;
 
   private _startDrag(e: MouseEvent): void {
     this._dragging = false;
@@ -338,7 +354,6 @@ export class Agent {
     const dx = e.clientX - this._dragStartX;
     const dy = e.clientY - this._dragStartY;
 
-    // Only start dragging after threshold
     if (!this._dragging) {
       if (Math.abs(dx) < Agent.DRAG_THRESHOLD && Math.abs(dy) < Agent.DRAG_THRESHOLD) return;
       this._dragging = true;
@@ -352,17 +367,20 @@ export class Agent {
   }
 
   private _finishDrag(): void {
-    if (this._dragUpdateLoop) clearTimeout(this._dragUpdateLoop);
+    if (this._dragUpdateLoop) {
+      clearTimeout(this._dragUpdateLoop);
+      this._dragUpdateLoop = null;
+    }
     if (this._moveHandle) window.removeEventListener('mousemove', this._moveHandle);
     if (this._upHandle) window.removeEventListener('mouseup', this._upHandle);
+    this._moveHandle = null;
+    this._upHandle = null;
 
     if (this._dragging) {
-      // Was a real drag — reposition and resume
       this._balloon.show();
       this.reposition();
       this.resume();
     }
-    // If not dragging, it was just a click — do nothing (dblclick handler covers that)
     this._dragging = false;
   }
 

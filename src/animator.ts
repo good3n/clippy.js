@@ -14,10 +14,9 @@ export class Animator {
   private _exiting = false;
   private _currentAnimation: AnimationData | undefined;
   private _endCallback: StateChangeCallback | undefined;
-  private _started = false;
   private _sounds: Record<string, HTMLAudioElement> = {};
   private _overlays: HTMLElement[];
-  private _loop: ReturnType<typeof setTimeout> | undefined;
+  private _loop: ReturnType<typeof setTimeout> | null = null;
 
   currentAnimationName: string | undefined;
 
@@ -73,18 +72,24 @@ export class Animator {
 
     if (!this.hasAnimation(animationName)) return false;
 
+    // Kill any running loop first
+    this._clearLoop();
+
     this._currentAnimation = this._data.animations[animationName];
     this.currentAnimationName = animationName;
-
-    if (!this._started) {
-      this._step();
-      this._started = true;
-    }
-
     this._currentFrameIndex = 0;
     this._currentFrame = undefined;
     this._endCallback = stateChangeCallback;
+
+    this._step();
     return true;
+  }
+
+  private _clearLoop(): void {
+    if (this._loop !== null) {
+      clearTimeout(this._loop);
+      this._loop = null;
+    }
   }
 
   private _draw(): void {
@@ -151,22 +156,39 @@ export class Animator {
     this._draw();
     this._playSound();
 
-    this._loop = setTimeout(() => this._step(), this._currentFrame?.duration ?? 100);
+    const duration = this._currentFrame?.duration ?? 100;
 
+    // Check if we're at the end
     if (this._endCallback && frameChanged && this._atLastFrame()) {
       if (this._currentAnimation.useExitBranching && !this._exiting) {
+        // Waiting for exit signal — keep looping on this frame
+        this._loop = setTimeout(() => this._step(), duration);
         this._endCallback(this.currentAnimationName!, AnimatorStates.WAITING);
       } else {
+        // Done — fire callback and STOP. No more setTimeout.
+        this._loop = null;
         this._endCallback(this.currentAnimationName!, AnimatorStates.EXITED);
       }
+    } else {
+      // More frames to go
+      this._loop = setTimeout(() => this._step(), duration);
     }
   }
 
   pause(): void {
-    if (this._loop) clearTimeout(this._loop);
+    this._clearLoop();
   }
 
   resume(): void {
-    this._step();
+    if (this._currentAnimation) {
+      this._step();
+    }
+  }
+
+  destroy(): void {
+    this._clearLoop();
+    this._currentAnimation = undefined;
+    this._endCallback = undefined;
+    this._currentFrame = undefined;
   }
 }
