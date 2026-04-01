@@ -1,7 +1,7 @@
 import type { AgentData, AgentName, SoundMap, ClippyConfig } from './types.js';
 import { Agent } from './agent.js';
 
-const DEFAULT_BASE_PATH = 'https://unpkg.com/clippy.js@2/agents';
+const DEFAULT_BASE_PATH = 'https://unpkg.com/clippy-js@2/agents';
 
 const mapCache = new Map<string, Promise<void>>();
 const agentCache = new Map<string, Promise<AgentData>>();

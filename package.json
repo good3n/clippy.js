@@ -1,5 +1,5 @@
 {
-  "name": "clippy.js",
+  "name": "clippy-js",
   "version": "2.0.0",
   "description": "Add Clippy or his friends to any website for instant nostalgia. Modernized — zero dependencies, TypeScript, ES modules.",
   "type": "module",
