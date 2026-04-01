@@ -4,8 +4,8 @@
 
 Modernized fork of the original [ClippyJS](https://github.com/clippyjs/clippy.js) — zero dependencies, TypeScript, ES modules.
 
-[![npm version](https://img.shields.io/npm/v/@good3n/clippy-js.svg)](https://www.npmjs.com/package/@good3n/clippy-js)
-[![license](https://img.shields.io/npm/l/@good3n/clippy-js.svg)](./MIT-LICENSE.txt)
+[![npm version](https://img.shields.io/npm/v/clippy-agent.svg)](https://www.npmjs.com/package/clippy-agent)
+[![license](https://img.shields.io/npm/l/clippy-agent.svg)](./MIT-LICENSE.txt)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
 
 ---
@@ -23,14 +23,14 @@ Modernized fork of the original [ClippyJS](https://github.com/clippyjs/clippy.js
 ## Install
 
 ```bash
-npm install @good3n/clippy-js
+npm install clippy-agent
 ```
 
 Or via CDN:
 
 ```html
 <script type="module">
-  import { load } from 'https://unpkg.com/@good3n/clippy-js@2/dist/index.js';
+  import { load } from 'https://unpkg.com/clippy-agent@2/dist/index.js';
 
   const agent = await load('Clippy');
   agent.show();
@@ -41,7 +41,7 @@ Or via CDN:
 ## Quick Start
 
 ```typescript
-import { load } from '@good3n/clippy-js';
+import { load } from 'clippy-agent';
 
 // Load an agent
 const agent = await load('Clippy');
@@ -149,7 +149,7 @@ Copy the `agents/` directory to your public assets folder.
 Full type definitions are included:
 
 ```typescript
-import { load, type Agent, type AgentName } from '@good3n/clippy-js';
+import { load, type Agent, type AgentName } from 'clippy-agent';
 
 const agentName: AgentName = 'Clippy';
 const agent: Agent = await load(agentName);
