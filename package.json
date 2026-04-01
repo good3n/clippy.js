@@ -1,0 +1,49 @@
+{
+  "name": "clippy.js",
+  "version": "2.0.0",
+  "description": "Add Clippy or his friends to any website for instant nostalgia. Modernized — zero dependencies, TypeScript, ES modules.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./css": "./dist/index.css"
+  },
+  "files": [
+    "dist",
+    "agents"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "clippy",
+    "assistant",
+    "nostalgia",
+    "microsoft",
+    "office",
+    "agent",
+    "animation",
+    "retro"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/good3n/clippy.js"
+  },
+  "license": "MIT",
+  "author": "good3n",
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}
