@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>clippy-agent — He's Back</title>
+  <meta name="description" content="The nostalgic desktop assistant, rebuilt for the modern web. Zero dependencies. TypeScript. All 10 original agents.">
+  <meta name="theme-color" content="#008080">
+  <meta property="og:title" content="clippy-agent — He's Back">
+  <meta property="og:description" content="The nostalgic desktop assistant, rebuilt for the modern web. Zero deps. TypeScript. 10 agents.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📎</text></svg>">
+  <style>
+    /* ═══════════════════════════════════════════
+       CLIPPY LIBRARY CSS (inlined from package)
+       ═══════════════════════════════════════════ */
+    .clippy, .clippy-balloon { position: fixed; z-index: 1000; cursor: pointer; }
+    .clippy-balloon { background: #FFC; color: black; padding: 8px; border: 1px solid black; border-radius: 5px; }
+    .clippy-content { max-width: 200px; min-width: 120px; font-family: "Microsoft Sans Serif", sans-serif; font-size: 10pt; }
+    .clippy-tip { width: 10px; height: 16px; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAgCAMAAAAlvKiEAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRF///MAAAA////52QwgAAAAAN0Uk5T//8A18oNQQAAAGxJREFUeNqs0kEOwCAIRFHn3//QTUU6xMyyxii+jQosrTPkyPEM6IN3FtzIRk1U4dFeKWQiH6pRRowMVKEmvronEynkwj0uZJgR22+YLopPSo9P34wJSamLSU7lSIWLJU7NkNomNlhqxUeAAQC+TQLZyEuJBwAAAABJRU5ErkJggg==) no-repeat; position: absolute; }
+    .clippy-top-left .clippy-tip { top: 100%; margin-top: 0; left: 100%; margin-left: -50px; }
+    .clippy-top-right .clippy-tip { top: 100%; margin-top: 0; left: 0; margin-left: 50px; background-position: -10px 0; }
+    .clippy-bottom-right .clippy-tip { top: 0; margin-top: -16px; left: 0; margin-left: 50px; background-position: -10px -16px; }
+    .clippy-bottom-left .clippy-tip { top: 0; margin-top: -16px; left: 100%; margin-left: -50px; background-position: 0px -16px; }
+
+    /* ═══════════════════════════════════════════
+       WIN95 DESIGN SYSTEM
+       ═══════════════════════════════════════════ */
+    :root {
+      --win-bg: #c0c0c0;
+      --win-text: #000;
+      --win-highlight: #fff;
+      --win-shadow: #808080;
+      --win-dark: #0a0a0a;
+      --win-light: #dfdfdf;
+      --win-blue: #000080;
+      --win-title: linear-gradient(90deg, #000080, #1084d0);
+      --desktop: #008080;
+      --font: "Segoe UI", Tahoma, Geneva, "Trebuchet MS", sans-serif;
+      --font-mono: "Cascadia Code", "Consolas", "Courier New", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      font-size: 12px;
+      color: var(--win-text);
+      background: var(--desktop);
+      min-height: 100vh;
+    }
+
+    /* ─── Desktop ─── */
+    .desktop {
+      min-height: 100vh;
+      padding: 20px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* ─── Window ─── */
+    .window {
+      width: 100%;
+      max-width: 740px;
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+      box-shadow: inset 1px 1px 0 var(--win-highlight), inset -1px -1px 0 var(--win-shadow), 2px 2px 8px rgba(0,0,0,0.3);
+      padding: 3px;
+      opacity: 0;
+      transform: scale(0.95);
+      animation: windowOpen 0.3s ease-out forwards;
+    }
+    .window:nth-child(1) { animation-delay: 0.1s; }
+    .window:nth-child(2) { animation-delay: 0.25s; }
+    .window:nth-child(3) { animation-delay: 0.4s; }
+    .window:nth-child(4) { animation-delay: 0.55s; }
+    .window:nth-child(5) { animation-delay: 0.7s; }
+
+    @keyframes windowOpen {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .title-bar {
+      background: var(--win-title);
+      color: #fff;
+      padding: 3px 4px 3px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .title-bar-text {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .title-bar-controls {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .title-bar-controls button {
+      width: 16px;
+      height: 14px;
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+      box-shadow: inset 1px 1px 0 var(--win-highlight), inset -1px -1px 0 var(--win-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      line-height: 1;
+      cursor: default;
+      padding: 0;
+      font-family: var(--font);
+    }
+    .title-bar-controls button:active {
+      border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+      box-shadow: inset 1px 1px 0 var(--win-shadow), inset -1px -1px 0 var(--win-highlight);
+    }
+
+    .window-body {
+      padding: 12px;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      margin: 2px;
+    }
+
+    .menu-bar {
+      display: flex;
+      gap: 0;
+      padding: 2px 0;
+      margin: 0 2px;
+    }
+    .menu-bar span {
+      padding: 2px 8px;
+      cursor: default;
+    }
+    .menu-bar span:hover {
+      background: var(--win-blue);
+      color: #fff;
+    }
+
+    .status-bar {
+      display: flex;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      margin: 2px;
+      margin-top: 0;
+      padding: 2px 6px;
+      font-size: 11px;
+      color: #444;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+      box-shadow: inset 1px 1px 0 var(--win-highlight), inset -1px -1px 0 var(--win-shadow);
+      padding: 4px 16px;
+      font-family: var(--font);
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--win-text);
+      text-decoration: none;
+      display: inline-block;
+      line-height: 1.4;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .btn:active {
+      border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+      box-shadow: inset 1px 1px 0 var(--win-shadow), inset -1px -1px 0 var(--win-highlight);
+      padding: 5px 15px 3px 17px;
+    }
+    .btn:focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+    .btn-primary {
+      font-weight: 700;
+      outline: 2px solid #000;
+      outline-offset: -1px;
+    }
+
+    /* ─── Inputs ─── */
+    .input, .select {
+      background: #fff;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      box-shadow: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-light);
+      padding: 3px 6px;
+      font-family: var(--font);
+      font-size: 12px;
+      color: var(--win-text);
+    }
+    .select { cursor: pointer; }
+
+    /* ─── Fieldset ─── */
+    .field {
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      padding: 12px;
+      margin: 0;
+    }
+    .field legend {
+      padding: 0 4px;
+      font-size: 12px;
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 2px;
+      background: var(--win-shadow);
+      border-bottom: 1px solid var(--win-highlight);
+      margin: 12px 0;
+    }
+
+    /* ═══════════════════════════════════════════
+       HERO
+       ═══════════════════════════════════════════ */
+    .hero-content {
+      text-align: center;
+      padding: 20px 10px 10px;
+    }
+
+    .hero-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .hero-title {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--win-blue);
+      margin-bottom: 12px;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 24px;
+      line-height: 1.5;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-install {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 20px;
+      background: #000;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      box-shadow: inset 1px 1px 0 var(--win-dark);
+    }
+    .hero-install code {
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: #0f0;
+      user-select: all;
+    }
+    .hero-install code span { color: #aaa; }
+    .hero-install .btn {
+      border: none;
+      box-shadow: none;
+      border-left: 2px solid var(--win-shadow);
+      font-size: 11px;
+      padding: 8px 12px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .hero-actions .btn {
+      min-width: 140px;
+      padding: 6px 20px;
+      font-size: 13px;
+    }
+
+    .hero-meta {
+      font-size: 11px;
+      color: #666;
+    }
+    .hero-meta a { color: var(--win-blue); }
+
+    /* ═══════════════════════════════════════════
+       FEATURES
+       ═══════════════════════════════════════════ */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .feature-card {
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+      box-shadow: inset 1px 1px 0 var(--win-highlight), inset -1px -1px 0 var(--win-shadow);
+      padding: 12px;
+    }
+
+    .feature-card-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--win-blue);
+    }
+
+    .feature-card p {
+      font-size: 11px;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    .agents-list {
+      margin-top: 12px;
+      padding: 10px;
+      background: #fff;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      box-shadow: inset 1px 1px 0 var(--win-dark);
+    }
+
+    .agents-list p {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .agents-list .agent-names {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .agent-tag {
+      background: var(--win-bg);
+      border: 1px solid var(--win-shadow);
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--win-blue);
+    }
+
+    /* ═══════════════════════════════════════════
+       DEMO
+       ═══════════════════════════════════════════ */
+    .demo-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .demo-controls label {
+      font-weight: 700;
+    }
+
+    .demo-controls .select {
+      min-width: 140px;
+    }
+
+    .demo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .demo-speak {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .demo-speak .input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .demo-anim-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .demo-anim-row .select { flex: 1; min-width: 120px; max-width: 260px; }
+
+    .demo-status {
+      margin-top: 10px;
+      padding: 8px;
+      font-size: 11px;
+      background: #fff;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      box-shadow: inset 1px 1px 0 var(--win-dark);
+      min-height: 32px;
+      color: #444;
+    }
+    .demo-status.loading { color: #888; }
+    .demo-status.error { color: #c00; }
+
+    /* ═══════════════════════════════════════════
+       INSTALL / CODE
+       ═══════════════════════════════════════════ */
+    .code-block {
+      position: relative;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      box-shadow: inset 1px 1px 0 var(--win-dark);
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-bottom: 12px;
+      white-space: pre;
+      tab-size: 2;
+    }
+
+    .code-block .kw { color: #569cd6; }
+    .code-block .fn { color: #dcdcaa; }
+    .code-block .str { color: #ce9178; }
+    .code-block .cmt { color: #6a9955; }
+    .code-block .num { color: #b5cea8; }
+    .code-block .tag { color: #808080; }
+
+    .code-block .copy-float {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: #333;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-family: var(--font);
+      cursor: pointer;
+    }
+    .code-block .copy-float:hover { background: #444; color: #fff; }
+
+    .install-section h2 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--win-blue);
+    }
+
+    .install-section h2:not(:first-child) {
+      margin-top: 16px;
+    }
+
+    .install-section p {
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    /* ═══════════════════════════════════════════
+       CHROME EXTENSION
+       ═══════════════════════════════════════════ */
+    .ext-content {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .ext-badge {
+      display: inline-block;
+      background: var(--win-blue);
+      color: #fff;
+      padding: 4px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: 0.03em;
+    }
+
+    .ext-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--win-blue);
+      margin-bottom: 8px;
+    }
+
+    .ext-subtitle {
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 16px;
+    }
+
+    .ext-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      text-align: left;
+    }
+
+    .ext-feature {
+      padding: 10px;
+      border: 1px solid var(--win-shadow);
+      background: #f0f0f0;
+    }
+    .ext-feature strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+    .ext-feature span {
+      font-size: 11px;
+      color: #555;
+    }
+
+    /* ═══════════════════════════════════════════
+       TASKBAR
+       ═══════════════════════════════════════════ */
+    .taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      background: var(--win-bg);
+      border-top: 2px solid var(--win-highlight);
+      display: flex;
+      align-items: center;
+      padding: 2px 4px;
+      gap: 4px;
+      z-index: 900;
+      box-shadow: 0 -1px 0 var(--win-light);
+    }
+
+    .start-btn {
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+      box-shadow: inset 1px 1px 0 var(--win-highlight), inset -1px -1px 0 var(--win-shadow);
+      padding: 2px 8px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 28px;
+    }
+    .start-btn:active {
+      border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+      box-shadow: inset 1px 1px 0 var(--win-shadow);
+    }
+
+    .taskbar-divider {
+      width: 2px;
+      height: 24px;
+      border-left: 1px solid var(--win-shadow);
+      border-right: 1px solid var(--win-highlight);
+      margin: 0 2px;
+    }
+
+    .taskbar-links {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .taskbar-link {
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+      box-shadow: inset 1px 1px 0 var(--win-highlight), inset -1px -1px 0 var(--win-shadow);
+      padding: 2px 10px;
+      font-family: var(--font);
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--win-text);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 28px;
+    }
+    .taskbar-link:active {
+      border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+      box-shadow: inset 1px 1px 0 var(--win-shadow);
+    }
+
+    .taskbar-clock {
+      border: 2px solid;
+      border-color: var(--win-shadow) var(--win-highlight) var(--win-highlight) var(--win-shadow);
+      padding: 2px 10px;
+      font-size: 11px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      min-width: 70px;
+      justify-content: center;
+    }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .desktop { padding: 10px 8px 70px; gap: 16px; }
+      .window { max-width: 100%; }
+      .hero-title { font-size: 36px; }
+      .hero-subtitle { font-size: 14px; }
+      .hero-install code { font-size: 12px; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .ext-features { grid-template-columns: 1fr; }
+      .demo-speak { flex-direction: column; }
+      .code-block { font-size: 11px; padding: 10px 12px; }
+      .taskbar-links { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 28px; }
+      .hero-actions .btn { min-width: 120px; font-size: 12px; }
+    }
+
+    /* Smooth scroll offset for taskbar */
+    [id] { scroll-margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<main class="desktop">
+
+  <!-- ═══════════════════════════════════════════
+       HERO
+       ═══════════════════════════════════════════ -->
+  <section class="window" id="hero-window">
+    <div class="title-bar">
+      <div class="title-bar-text">clippy-agent</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize">_</button>
+        <button aria-label="Maximize">&#9633;</button>
+        <button aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="hero-content">
+        <span class="hero-icon" aria-hidden="true">📎</span>
+        <h1 class="hero-title">He's back.</h1>
+        <p class="hero-subtitle">
+          The nostalgic desktop assistant, rebuilt for the modern web.<br>
+          Zero dependencies. TypeScript. All 10 original agents.
+        </p>
+        <div class="hero-install">
+          <code><span>$</span> npm install clippy-agent</code>
+          <button class="btn" onclick="copyText('npm install clippy-agent', this)">Copy</button>
+        </div>
+        <div class="hero-actions">
+          <a href="https://github.com/good3n/clippy-agent" class="btn btn-primary" target="_blank" rel="noopener">View on GitHub</a>
+          <a href="#demo-window" class="btn">Try Live Demo &darr;</a>
+        </div>
+        <p class="hero-meta">v2.0.0 &middot; 12KB gzipped &middot; ES Modules &middot; MIT License</p>
+      </div>
+    </div>
+    <div class="status-bar">Ready</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       FEATURES
+       ═══════════════════════════════════════════ -->
+  <section class="window" id="features-window">
+    <div class="title-bar">
+      <div class="title-bar-text">features.exe &mdash; Properties</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize">_</button>
+        <button aria-label="Maximize">&#9633;</button>
+        <button aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128230;</span>
+          <h3>Zero Dependencies</h3>
+          <p>No bloat. No supply chain risk. Pure vanilla JavaScript under the hood.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128309;</span>
+          <h3>TypeScript</h3>
+          <p>Full type definitions. IntelliSense and autocomplete in every editor.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128101;</span>
+          <h3>10 Agents</h3>
+          <p>All the classics. Clippy, Bonzi, Merlin, and 7 more friends.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128230;</span>
+          <h3>ES Modules</h3>
+          <p>Tree-shakeable imports. Works with Vite, Webpack, Rollup, or plain &lt;script&gt;.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#127916;</span>
+          <h3>100+ Animations</h3>
+          <p>Each agent ships with over 100 unique frame-by-frame animations.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128172;</span>
+          <h3>Speech Balloons</h3>
+          <p>Word-by-word animated speech. Just like you remember.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128433;</span>
+          <h3>Draggable</h3>
+          <p>Click and drag agents around the screen. Fully interactive.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card-icon" aria-hidden="true">&#128266;</span>
+          <h3>Sounds</h3>
+          <p>Original sound effects included. Enable or disable per agent.</p>
+        </div>
+      </div>
+
+      <div class="agents-list">
+        <p>Available agents:</p>
+        <div class="agent-names">
+          <span class="agent-tag">Clippy</span>
+          <span class="agent-tag">Bonzi</span>
+          <span class="agent-tag">Merlin</span>
+          <span class="agent-tag">Genie</span>
+          <span class="agent-tag">Genius</span>
+          <span class="agent-tag">Links</span>
+          <span class="agent-tag">Peedy</span>
+          <span class="agent-tag">Rocky</span>
+          <span class="agent-tag">Rover</span>
+          <span class="agent-tag">F1</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       LIVE DEMO
+       ═══════════════════════════════════════════ -->
+  <section class="window" id="demo-window">
+    <div class="title-bar">
+      <div class="title-bar-text">demo.exe</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize">_</button>
+        <button aria-label="Maximize">&#9633;</button>
+        <button aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <span>File</span>
+      <span>Edit</span>
+      <span>Agents</span>
+      <span>Help</span>
+    </div>
+    <div class="window-body">
+      <!-- Agent selector -->
+      <div class="demo-controls">
+        <label for="agent-select">Agent:</label>
+        <select id="agent-select" class="select">
+          <option value="Clippy" selected>Clippy</option>
+          <option value="Bonzi">Bonzi</option>
+          <option value="Merlin">Merlin</option>
+          <option value="Genie">Genie</option>
+          <option value="Genius">Genius</option>
+          <option value="Links">Links</option>
+          <option value="Peedy">Peedy</option>
+          <option value="Rocky">Rocky</option>
+          <option value="Rover">Rover</option>
+          <option value="F1">F1</option>
+        </select>
+        <button class="btn btn-primary" id="load-agent-btn">Load Agent</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Action buttons -->
+      <div class="demo-actions">
+        <button class="btn" data-action="speak" title="Make the agent speak">&#128172; Speak</button>
+        <button class="btn" data-action="animate" title="Play a random animation">&#127916; Animate</button>
+        <button class="btn" data-action="wave" title="Wave hello">&#128075; Wave</button>
+        <button class="btn" data-action="think" title="Show thinking animation">&#129300; Think</button>
+        <button class="btn" data-action="excited" title="Get excited!">&#127881; Excited</button>
+        <button class="btn" data-action="write" title="Writing animation">&#9997; Write</button>
+        <button class="btn" data-action="hide" title="Hide the agent">&#128065; Hide/Show</button>
+      </div>
+
+      <!-- Custom speech -->
+      <div class="demo-speak">
+        <input type="text" id="speak-input" class="input" placeholder="Type a message for the agent..." value="It looks like you're building a website!">
+        <button class="btn" id="speak-btn">Say it!</button>
+      </div>
+
+      <!-- Animation picker -->
+      <div class="demo-anim-row">
+        <label for="anim-select">Animation:</label>
+        <select id="anim-select" class="select">
+          <option value="">Load an agent first...</option>
+        </select>
+        <button class="btn" id="play-anim-btn">Play</button>
+      </div>
+
+      <!-- Status -->
+      <div class="demo-status" id="demo-status">Click "Load Agent" to start the demo.</div>
+    </div>
+    <div class="status-bar" id="demo-statusbar">No agent loaded</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       INSTALL
+       ═══════════════════════════════════════════ -->
+  <section class="window" id="install-window">
+    <div class="title-bar">
+      <div class="title-bar-text">README.md &mdash; Notepad</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize">_</button>
+        <button aria-label="Maximize">&#9633;</button>
+        <button aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <span>File</span>
+      <span>Edit</span>
+      <span>Format</span>
+      <span>Help</span>
+    </div>
+    <div class="window-body install-section">
+      <h2>npm / yarn / pnpm</h2>
+      <div class="code-block"><button class="copy-float" onclick="copyCode(this)">Copy</button><span class="cmt"># Install the package</span>
+npm install clippy-agent</div>
+
+      <h2>Quick Start</h2>
+      <div class="code-block"><button class="copy-float" onclick="copyCode(this)">Copy</button><span class="kw">import</span> { <span class="fn">load</span> } <span class="kw">from</span> <span class="str">'clippy-agent'</span>;
+<span class="kw">import</span> <span class="str">'clippy-agent/dist/index.css'</span>;
+
+<span class="kw">const</span> agent = <span class="kw">await</span> <span class="fn">load</span>(<span class="str">'Clippy'</span>);
+agent.<span class="fn">show</span>();
+agent.<span class="fn">speak</span>(<span class="str">'Hello, World!'</span>);
+agent.<span class="fn">animate</span>();</div>
+
+      <h2>CDN (No Build Step)</h2>
+      <div class="code-block"><button class="copy-float" onclick="copyCode(this)">Copy</button><span class="tag">&lt;link</span> rel=<span class="str">"stylesheet"</span> href=<span class="str">"https://unpkg.com/clippy-agent@2/dist/index.css"</span><span class="tag">&gt;</span>
+
+<span class="tag">&lt;script</span> type=<span class="str">"module"</span><span class="tag">&gt;</span>
+  <span class="kw">import</span> { <span class="fn">load</span> } <span class="kw">from</span> <span class="str">'https://unpkg.com/clippy-agent@2/dist/index.js'</span>;
+
+  <span class="kw">const</span> agent = <span class="kw">await</span> <span class="fn">load</span>(<span class="str">'Clippy'</span>);
+  agent.<span class="fn">show</span>();
+  agent.<span class="fn">speak</span>(<span class="str">'Hello from the CDN!'</span>);
+<span class="tag">&lt;/script&gt;</span></div>
+
+      <h2>API Highlights</h2>
+      <div class="code-block"><button class="copy-float" onclick="copyCode(this)">Copy</button><span class="cmt">// Show with entrance animation</span>
+agent.<span class="fn">show</span>();
+
+<span class="cmt">// Speak with word-by-word animation</span>
+agent.<span class="fn">speak</span>(<span class="str">'Need help with that?'</span>);
+
+<span class="cmt">// Play specific animation</span>
+agent.<span class="fn">play</span>(<span class="str">'Wave'</span>);
+
+<span class="cmt">// Random animation</span>
+agent.<span class="fn">animate</span>();
+
+<span class="cmt">// Move to coordinates (animated)</span>
+agent.<span class="fn">moveTo</span>(<span class="num">200</span>, <span class="num">300</span>);
+
+<span class="cmt">// All actions are queued automatically</span>
+agent.<span class="fn">speak</span>(<span class="str">'First this...'</span>);
+agent.<span class="fn">play</span>(<span class="str">'Thinking'</span>);
+agent.<span class="fn">speak</span>(<span class="str">'Then this!'</span>);
+
+<span class="cmt">// Clean up</span>
+agent.<span class="fn">destroy</span>();</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       CHROME EXTENSION
+       ═══════════════════════════════════════════ -->
+  <section class="window" id="extension-window">
+    <div class="title-bar">
+      <div class="title-bar-text">Chrome Extension &mdash; clippy-agent</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize">_</button>
+        <button aria-label="Maximize">&#9633;</button>
+        <button aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="ext-content">
+        <span class="ext-badge">COMING SOON</span>
+        <h2 class="ext-title">Clippy for Every Website</h2>
+        <p class="ext-subtitle">
+          Your favorite assistant, everywhere you browse. Context-aware quips for Gmail, GitHub, YouTube, and more.
+        </p>
+        <div class="ext-features">
+          <div class="ext-feature">
+            <strong>&#127758; Context-Aware</strong>
+            <span>Knows what site you're on. Quips about your emails, your code, your videos.</span>
+          </div>
+          <div class="ext-feature">
+            <strong>&#128101; All 10 Agents</strong>
+            <span>Pick your companion. Clippy, Bonzi, Merlin, or any of the classics.</span>
+          </div>
+          <div class="ext-feature">
+            <strong>&#9881; Customizable</strong>
+            <span>Control how often your agent speaks. From every 30 seconds to every 5 minutes.</span>
+          </div>
+          <div class="ext-feature">
+            <strong>&#128268; Lightweight</strong>
+            <span>No background processes. No tracking. Just vibes.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="status-bar">Check back soon for Chrome Web Store listing</div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════
+     TASKBAR
+     ═══════════════════════════════════════════ -->
+<footer class="taskbar">
+  <button class="start-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <rect x="0" y="0" width="6" height="6" fill="#F00"/>
+      <rect x="7" y="0" width="6" height="6" fill="#0F0"/>
+      <rect x="0" y="7" width="6" height="6" fill="#00F"/>
+      <rect x="7" y="7" width="6" height="6" fill="#FF0"/>
+    </svg>
+    Start
+  </button>
+  <div class="taskbar-divider"></div>
+  <div class="taskbar-links">
+    <a href="https://github.com/good3n/clippy-agent" class="taskbar-link" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.npmjs.com/package/clippy-agent" class="taskbar-link" target="_blank" rel="noopener">npm</a>
+  </div>
+  <div class="taskbar-clock" id="taskbar-clock"></div>
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════ -->
+<script type="module">
+  const CDN = 'https://unpkg.com/clippy-agent@2';
+
+  // ─── State ───
+  let currentAgent = null;
+  let currentAgentName = '';
+  let agentHidden = false;
+  let isLoading = false;
+
+  // ─── DOM refs ───
+  const agentSelect = document.getElementById('agent-select');
+  const loadBtn = document.getElementById('load-agent-btn');
+  const animSelect = document.getElementById('anim-select');
+  const playAnimBtn = document.getElementById('play-anim-btn');
+  const speakInput = document.getElementById('speak-input');
+  const speakBtn = document.getElementById('speak-btn');
+  const statusEl = document.getElementById('demo-status');
+  const statusBar = document.getElementById('demo-statusbar');
+
+  // ─── Clock ───
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    document.getElementById('taskbar-clock').textContent = `${h12}:${m} ${ampm}`;
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  // ─── Copy helpers ───
+  window.copyText = async function(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = orig, 1500);
+    } catch {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = orig, 1500);
+    }
+  };
+
+  window.copyCode = function(btn) {
+    const block = btn.closest('.code-block');
+    const text = block.textContent.replace(/^Copy/, '').trim();
+    copyText(text, btn);
+  };
+
+  // ─── Agent loading ───
+  let loadModule;
+
+  async function getLoader() {
+    if (loadModule) return loadModule;
+    const mod = await import(`${CDN}/dist/index.js`);
+    loadModule = mod.load;
+    return loadModule;
+  }
+
+  async function loadAgent(name) {
+    if (isLoading) return;
+    isLoading = true;
+
+    setStatus(`Loading ${name}...`, 'loading');
+    setStatusBar(`Loading ${name}...`);
+
+    // Destroy previous
+    if (currentAgent) {
+      try { currentAgent.destroy(); } catch {}
+      currentAgent = null;
+    }
+
+    try {
+      const load = await getLoader();
+      const agent = await load(name, { sounds: false });
+      currentAgent = agent;
+      currentAgentName = name;
+      agentHidden = false;
+
+      agent.show();
+      agent.speak(getWelcomeQuote(name));
+
+      populateAnimations(agent.animations());
+      setStatus(`${name} loaded! Click the buttons above or drag the agent around.`, '');
+      setStatusBar(`${name} — ${agent.animations().length} animations available`);
+    } catch (err) {
+      console.error('Failed to load agent:', err);
+      setStatus(`Failed to load ${name}: ${err.message}`, 'error');
+      setStatusBar('Error loading agent');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function getWelcomeQuote(name) {
+    const quotes = {
+      Clippy: "It looks like you're building a website. Would you like help?",
+      Bonzi: "Expand your world! I'm Bonzi, your web buddy!",
+      Merlin: "Greetings! I shall conjure some code for you.",
+      Genie: "Your wish is my command!",
+      Genius: "Let me enlighten you about clippy-agent.",
+      Links: "I'm on the hunt for bugs in your code!",
+      Peedy: "Polly wants a package! npm install clippy-agent!",
+      Rocky: "Yo! Let's build something together!",
+      Rover: "I found what you're looking for! It's clippy-agent!",
+      F1: "Ready for launch? Let's deploy this thing!",
+    };
+    return quotes[name] || "Hello! I'm ready to help!";
+  }
+
+  function populateAnimations(anims) {
+    animSelect.innerHTML = '';
+    const sorted = [...anims].sort();
+    for (const a of sorted) {
+      const opt = document.createElement('option');
+      opt.value = a;
+      opt.textContent = a;
+      animSelect.appendChild(opt);
+    }
+  }
+
+  function setStatus(msg, cls) {
+    statusEl.textContent = msg;
+    statusEl.className = 'demo-status' + (cls ? ` ${cls}` : '');
+  }
+
+  function setStatusBar(msg) {
+    statusBar.textContent = msg;
+  }
+
+  // ─── Demo controls ───
+  loadBtn.addEventListener('click', () => {
+    loadAgent(agentSelect.value);
+  });
+
+  playAnimBtn.addEventListener('click', () => {
+    if (!currentAgent || !animSelect.value) return;
+    currentAgent.play(animSelect.value);
+    setStatus(`Playing: ${animSelect.value}`, '');
+  });
+
+  speakBtn.addEventListener('click', () => {
+    if (!currentAgent) return;
+    const text = speakInput.value.trim();
+    if (text) {
+      currentAgent.speak(text);
+      setStatus(`Speaking: "${text}"`, '');
+    }
+  });
+
+  speakInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') speakBtn.click();
+  });
+
+  // Action buttons
+  const randomQuotes = [
+    "It looks like you're writing a letter. Would you like help?",
+    "I see you're reading clippy-agent docs. Smart move!",
+    "npm install clippy-agent. Trust me.",
+    "Did you know I have over 100 animations?",
+    "I'm back and better than ever. Now with TypeScript!",
+    "Have you starred the repo yet? Just checking.",
+    "Pro tip: You can drag me around!",
+    "Zero dependencies. Just like your childhood.",
+  ];
+
+  document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!currentAgent) {
+        setStatus('Load an agent first!', 'error');
+        return;
+      }
+      const action = btn.dataset.action;
+      switch (action) {
+        case 'speak':
+          const q = randomQuotes[Math.floor(Math.random() * randomQuotes.length)];
+          currentAgent.speak(q);
+          setStatus(`Speaking...`, '');
+          break;
+        case 'animate':
+          currentAgent.animate();
+          setStatus('Playing random animation...', '');
+          break;
+        case 'wave':
+          if (currentAgent.hasAnimation('Wave')) {
+            currentAgent.play('Wave');
+            setStatus('Playing: Wave', '');
+          } else if (currentAgent.hasAnimation('Greeting')) {
+            currentAgent.play('Greeting');
+            setStatus('Playing: Greeting', '');
+          } else {
+            currentAgent.animate();
+            setStatus('No wave animation — playing random instead', '');
+          }
+          break;
+        case 'think':
+          if (currentAgent.hasAnimation('Thinking')) {
+            currentAgent.play('Thinking');
+            setStatus('Playing: Thinking', '');
+          } else {
+            currentAgent.speak("Hmm, let me think about that...");
+            setStatus('Speaking...', '');
+          }
+          break;
+        case 'excited':
+          if (currentAgent.hasAnimation('Congratulate')) {
+            currentAgent.play('Congratulate');
+            setStatus('Playing: Congratulate', '');
+          } else {
+            currentAgent.animate();
+            setStatus('Playing random animation...', '');
+          }
+          break;
+        case 'write':
+          if (currentAgent.hasAnimation('Writing')) {
+            currentAgent.play('Writing');
+            setStatus('Playing: Writing', '');
+          } else {
+            currentAgent.animate();
+            setStatus('Playing random animation...', '');
+          }
+          break;
+        case 'hide':
+          if (agentHidden) {
+            currentAgent.show();
+            agentHidden = false;
+            btn.innerHTML = '&#128065; Hide/Show';
+            setStatus(`${currentAgentName} is back!`, '');
+          } else {
+            currentAgent.hide(true);
+            agentHidden = true;
+            btn.innerHTML = '&#128065; Show';
+            setStatus(`${currentAgentName} is hidden. Click again to show.`, '');
+          }
+          break;
+      }
+    });
+  });
+
+  // ─── Auto-load Clippy when demo section is visible ───
+  let heroLoaded = false;
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && entry.target.id === 'demo-window' && !heroLoaded && !currentAgent) {
+        heroLoaded = true;
+        loadAgent('Clippy');
+        observer.disconnect();
+      }
+    }
+  }, { threshold: 0.2 });
+
+  observer.observe(document.getElementById('demo-window'));
+
+  // Also load on button click regardless
+  // (covered by loadBtn listener above)
+</script>
+
+</body>
+</html>
