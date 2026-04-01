@@ -1,8 +1,8 @@
-# 📎 Clippy.js
+# Clippy Agent
 
-**Add Clippy or his friends to any website for instant nostalgia.**
+**Add Clippy or his friends to any website for instant nostalgia. Now with optional AI powers.**
 
-Modernized fork of the original [ClippyJS](https://github.com/clippyjs/clippy.js) — zero dependencies, TypeScript, ES modules.
+Modernized fork of the original [ClippyJS](https://github.com/clippyjs/clippy.js) — zero dependencies, TypeScript, ES modules. Includes a Chrome Extension with optional AI features powered by any OpenAI-compatible gateway.
 
 [![npm version](https://img.shields.io/npm/v/clippy-agent.svg)](https://www.npmjs.com/package/clippy-agent)
 [![license](https://img.shields.io/npm/l/clippy-agent.svg)](./MIT-LICENSE.txt)
@@ -10,17 +10,66 @@ Modernized fork of the original [ClippyJS](https://github.com/clippyjs/clippy.js
 
 ---
 
-## What's New in v2
+## Chrome Extension
 
-- 🚀 **Zero dependencies** — no more jQuery
-- 📦 **ES Modules + CommonJS** — works everywhere
-- 🔷 **Full TypeScript** — types included out of the box
-- 🎯 **Tree-shakeable** — only bundle what you use
-- 🪶 **Tiny footprint** — modernized vanilla JS under the hood
-- 🖱️ **Draggable** — click and drag your agent around
-- 🔊 **Sound support** — optional agent sounds
+The Chrome Extension puts Clippy (or any of the 10 agents) on every webpage you visit. It works in two modes:
 
-## Install
+### Classic Mode (no setup required)
+
+Clippy appears on every page with **canned context-aware quips** — he roasts your emails on Gmail, judges your code on GitHub, questions your purchases on Amazon, and more. All 10 original agents included.
+
+- **Click** Clippy to play a random animation
+- **Double-click** for a random animation
+- **Drag** him anywhere on the page
+- **Right-click** to switch agents or hide him
+
+### AI Mode (optional)
+
+Connect Clippy to any **OpenAI-compatible API** and he becomes actually useful:
+
+- **Click Clippy** to open a smart menu with contextual options based on the site you're on:
+  - GitHub: "Explain this code", "Review this PR"
+  - Gmail: "Help me write this", "Summarize inbox"
+  - Amazon: "Is this worth it?"
+  - YouTube: "Is this worth watching?"
+  - Stack Overflow: "Explain the answer"
+  - Plus "Summarize this page" and a free-text input on every site
+- **Select text + right-click** "Ask Clippy about this" for instant explanations
+- **Smart quips** — instead of canned jokes, Clippy generates context-aware commentary about the page you're on
+- **Works with any OpenAI-compatible backend** — OpenClaw, LiteLLM, Ollama, OpenRouter, or the OpenAI API directly
+
+### Install the Extension
+
+1. Download or clone this repo
+2. Open `chrome://extensions` in Chrome
+3. Enable **Developer mode** (top-right toggle)
+4. Click **Load unpacked** and select the `extension/` folder
+5. Clippy appears! He works immediately with canned quips — no setup needed
+
+### Enable AI Features
+
+1. Click the Clippy extension icon in Chrome's toolbar
+2. Check **"Enable AI features"**
+3. Enter your **Gateway URL** (e.g. `http://localhost:18789` or your remote gateway)
+4. Enter your **Gateway Token** (bearer auth token)
+5. Click **Test Connection** to verify
+6. Click **OK** to save
+7. Now click Clippy on any page to ask questions!
+
+**Compatible gateways:**
+- [OpenClaw](https://github.com/good3n/openclaw) (self-hosted, recommended)
+- Any OpenAI-compatible API (`/v1/chat/completions` endpoint)
+- OpenRouter, Together AI, Ollama, LiteLLM, etc.
+
+The extension sends requests to `POST /v1/chat/completions` with standard OpenAI chat format. Any backend that supports this works.
+
+---
+
+## npm Package
+
+The npm package is the core library for embedding Clippy in your own web projects.
+
+### Install
 
 ```bash
 npm install clippy-agent
@@ -38,33 +87,22 @@ Or via CDN:
 </script>
 ```
 
-## Quick Start
+### Quick Start
 
 ```typescript
 import { load } from 'clippy-agent';
 
-// Load an agent
 const agent = await load('Clippy');
-
-// Show the agent
 agent.show();
-
-// Make it talk
 agent.speak('It looks like you\'re writing a letter. Would you like help?');
-
-// Play an animation
 agent.play('Searching');
-
-// Move to a position
 agent.moveTo(200, 300);
-
-// Play a random animation
 agent.animate();
 ```
 
-## API
+### API
 
-### `load(name, config?)`
+#### `load(name, config?)`
 
 Load an agent. Returns a `Promise<Agent>`.
 
@@ -73,12 +111,12 @@ const agent = await load('Clippy');
 
 // With config
 const agent = await load('Merlin', {
-  basePath: '/my-custom-agents',  // Custom agent asset path
-  sounds: false,                   // Disable sounds
+  basePath: '/my-custom-agents',
+  sounds: false,
 });
 ```
 
-### Agent Methods
+#### Agent Methods
 
 | Method | Description |
 |--------|-------------|
@@ -99,7 +137,7 @@ const agent = await load('Merlin', {
 | `agent.delay(ms?)` | Add a delay to the action queue. |
 | `agent.destroy()` | Remove agent from the DOM entirely. |
 
-### Action Queue
+#### Action Queue
 
 All actions are queued and executed in order:
 
@@ -110,10 +148,10 @@ agent.speak('Found it!');
 agent.play('Congratulate');
 ```
 
-## Available Agents
+### Available Agents
 
-| Agent | Preview |
-|-------|---------|
+| Agent | Description |
+|-------|-------------|
 | **Clippy** | The classic paperclip |
 | **Bonzi** | The purple gorilla |
 | **F1** | The robot |
@@ -125,14 +163,7 @@ agent.play('Congratulate');
 | **Rocky** | The dog |
 | **Rover** | The search dog |
 
-```typescript
-// Load any agent
-const clippy = await load('Clippy');
-const merlin = await load('Merlin');
-const bonzi = await load('Bonzi');
-```
-
-## Custom Agent Path
+### Custom Agent Path
 
 By default, agent assets are loaded from unpkg CDN. You can self-host them:
 
@@ -142,11 +173,9 @@ const agent = await load('Clippy', {
 });
 ```
 
-Copy the `agents/` directory to your public assets folder.
+### TypeScript
 
-## TypeScript
-
-Full type definitions are included:
+Full type definitions included:
 
 ```typescript
 import { load, type Agent, type AgentName } from 'clippy-agent';
@@ -157,19 +186,13 @@ const agent: Agent = await load(agentName);
 
 ## Browser Support
 
-Works in all modern browsers (Chrome, Firefox, Safari, Edge). No IE support — it's 2026.
-
-## Roadmap
-
-- 🧩 **Chrome Extension** — Clippy for your browser, everywhere you go
-- 🤖 **MCP Integration** — Connect Clippy to Claude via Model Context Protocol for AI-powered assistance
-- 📱 **React/Vue/Svelte components** — Framework wrappers
+Works in all modern browsers (Chrome, Firefox, Safari, Edge).
 
 ## Credits
 
 - Original [ClippyJS](https://github.com/clippyjs/clippy.js) by [Smore](https://www.smore.com/clippy-js)
 - [Cinnamon Software](http://www.cinnamonsoftware.com/) for [Double Agent](http://doubleagent.sourceforge.net/) (used to extract the original sprites)
-- Microsoft, for creating Clippy 📎
+- Microsoft, for creating Clippy
 
 ## License
 

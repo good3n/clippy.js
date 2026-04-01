@@ -1,6 +1,6 @@
 {
   "name": "clippy-agent",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "Add Clippy or his friends to any website for instant nostalgia. Modernized — zero dependencies, TypeScript, ES modules.",
   "type": "module",
   "main": "./dist/index.cjs",

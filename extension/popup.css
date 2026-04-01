@@ -256,3 +256,50 @@ input[type="number"]:focus {
 .freq-sep {
   padding: 0 2px;
 }
+
+/* Win95 Text Input */
+.text-input {
+  font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
+  font-size: 11px;
+  background: #fff;
+  border: 2px inset #c0c0c0;
+  padding: 2px 4px;
+  outline: none;
+  height: 22px;
+  flex: 1;
+  max-width: 160px;
+}
+
+.text-input:focus {
+  outline: 1px dotted #000;
+  outline-offset: -2px;
+}
+
+/* Small button */
+.btn-sm {
+  font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
+  font-size: 10px;
+  background: #c0c0c0;
+  color: #000;
+  border: 2px outset #fff;
+  padding: 2px 10px;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+}
+
+.btn-sm:active {
+  border-style: inset;
+}
+
+.btn-sm:disabled {
+  color: #808080;
+  cursor: default;
+}
+
+/* Gateway status text */
+.gateway-status {
+  font-size: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}

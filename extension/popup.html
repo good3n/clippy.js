@@ -60,6 +60,29 @@
       </div>
     </fieldset>
 
+    <!-- AI Settings -->
+    <fieldset class="group-box">
+      <legend>AI Features</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="aiEnabled">
+        <label for="aiEnabled">Enable AI features (requires OpenClaw)</label>
+      </div>
+      <div id="aiSettings" style="margin-top: 6px;">
+        <div class="form-row">
+          <label for="gatewayUrl">Gateway URL:</label>
+          <input type="text" id="gatewayUrl" class="text-input" placeholder="http://localhost:18789">
+        </div>
+        <div class="form-row" style="margin-top: 4px;">
+          <label for="gatewayToken">Token:</label>
+          <input type="password" id="gatewayToken" class="text-input" placeholder="Gateway token">
+        </div>
+        <div style="margin-top: 6px;">
+          <button class="btn btn-sm" id="testGatewayBtn">Test Connection</button>
+          <span id="gatewayStatus" class="gateway-status"></span>
+        </div>
+      </div>
+    </fieldset>
+
     <!-- Action buttons -->
     <div class="button-row">
       <button class="btn btn-primary" id="saveBtn">OK</button>
@@ -71,7 +94,8 @@
   <!-- Status bar -->
   <div class="statusbar">
     <span class="statusbar-cell" id="status">Ready</span>
-    <span class="statusbar-cell">v1.0.0</span>
+    <span class="statusbar-cell" id="aiStatusCell">AI: Off</span>
+    <span class="statusbar-cell">v1.1.0</span>
   </div>
 
   <script src="popup.js"></script>

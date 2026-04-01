@@ -17,6 +17,15 @@
   var statusEl = document.getElementById('status');
   var previewEl = document.getElementById('agentPreview');
 
+  // AI elements
+  var aiEnabledEl = document.getElementById('aiEnabled');
+  var aiSettingsEl = document.getElementById('aiSettings');
+  var gatewayUrlEl = document.getElementById('gatewayUrl');
+  var gatewayTokenEl = document.getElementById('gatewayToken');
+  var testGatewayBtnEl = document.getElementById('testGatewayBtn');
+  var gatewayStatusEl = document.getElementById('gatewayStatus');
+  var aiStatusCellEl = document.getElementById('aiStatusCell');
+
   // ---------------------------------------------------------------------------
   // Load saved settings
   // ---------------------------------------------------------------------------
@@ -25,13 +34,21 @@
     agent: 'Clippy',
     enabled: true,
     quipMin: 30,
-    quipMax: 60
+    quipMax: 60,
+    aiEnabled: false,
+    gatewayUrl: '',
+    gatewayToken: ''
   }, function (items) {
     enabledEl.checked = items.enabled;
     agentEl.value = items.agent;
     quipMinEl.value = items.quipMin;
     quipMaxEl.value = items.quipMax;
+    aiEnabledEl.checked = items.aiEnabled;
+    gatewayUrlEl.value = items.gatewayUrl;
+    gatewayTokenEl.value = items.gatewayToken;
     updatePreview(items.agent);
+    updateAiVisibility();
+    updateAiStatusBar();
   });
 
   // ---------------------------------------------------------------------------
@@ -39,12 +56,6 @@
   // ---------------------------------------------------------------------------
 
   function updatePreview(agentName) {
-    var img = new Image();
-    img.style.imageRendering = 'pixelated';
-
-    // We'll show the first frame of the sprite sheet (top-left corner),
-    // clipped to the agent's frame size. Since we don't know the frame size
-    // without loading agent data, we'll use a div with background clipping.
     var previewDiv = document.createElement('div');
     previewDiv.style.width = '124px';
     previewDiv.style.height = '93px';
@@ -54,10 +65,9 @@
     previewDiv.style.imageRendering = 'pixelated';
     previewDiv.style.overflow = 'hidden';
 
-    previewEl.innerHTML = '';
+    previewEl.textContent = '';
     previewEl.appendChild(previewDiv);
 
-    // Also show the agent name
     var label = document.createElement('div');
     label.textContent = agentName;
     label.style.marginTop = '4px';
@@ -70,6 +80,32 @@
   });
 
   // ---------------------------------------------------------------------------
+  // AI settings visibility
+  // ---------------------------------------------------------------------------
+
+  function updateAiVisibility() {
+    aiSettingsEl.style.display = aiEnabledEl.checked ? 'block' : 'none';
+  }
+
+  function updateAiStatusBar() {
+    if (aiEnabledEl.checked && gatewayUrlEl.value) {
+      aiStatusCellEl.textContent = 'AI: On';
+      aiStatusCellEl.style.color = '#080';
+    } else if (aiEnabledEl.checked) {
+      aiStatusCellEl.textContent = 'AI: No URL';
+      aiStatusCellEl.style.color = '#c00';
+    } else {
+      aiStatusCellEl.textContent = 'AI: Off';
+      aiStatusCellEl.style.color = '#888';
+    }
+  }
+
+  aiEnabledEl.addEventListener('change', function () {
+    updateAiVisibility();
+    updateAiStatusBar();
+  });
+
+  // ---------------------------------------------------------------------------
   // Save
   // ---------------------------------------------------------------------------
 
@@ -77,7 +113,6 @@
     var minVal = parseInt(quipMinEl.value, 10) || 30;
     var maxVal = parseInt(quipMaxEl.value, 10) || 60;
 
-    // Clamp values
     if (minVal < 5) minVal = 5;
     if (maxVal < minVal + 5) maxVal = minVal + 5;
     if (maxVal > 600) maxVal = 600;
@@ -89,14 +124,16 @@
       agent: agentEl.value,
       enabled: enabledEl.checked,
       quipMin: minVal,
-      quipMax: maxVal
+      quipMax: maxVal,
+      aiEnabled: aiEnabledEl.checked,
+      gatewayUrl: gatewayUrlEl.value.trim(),
+      gatewayToken: gatewayTokenEl.value
     };
 
     chrome.storage.sync.set(settings, function () {
       statusEl.textContent = 'Settings saved!';
-
-      // Flash effect
       saveBtnEl.textContent = 'Saved!';
+      updateAiStatusBar();
       setTimeout(function () {
         saveBtnEl.textContent = 'OK';
         statusEl.textContent = 'Ready';
@@ -105,7 +142,7 @@
   });
 
   // ---------------------------------------------------------------------------
-  // Test Quip — send message to active tab's content script
+  // Test Quip
   // ---------------------------------------------------------------------------
 
   testBtnEl.addEventListener('click', function () {
@@ -116,6 +153,49 @@
         setTimeout(function () {
           statusEl.textContent = 'Ready';
         }, 1500);
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test Gateway Connection
+  // ---------------------------------------------------------------------------
+
+  testGatewayBtnEl.addEventListener('click', function () {
+    var url = gatewayUrlEl.value.trim();
+    if (!url) {
+      gatewayStatusEl.textContent = 'Enter a URL first';
+      gatewayStatusEl.style.color = '#c00';
+      return;
+    }
+
+    gatewayStatusEl.textContent = 'Testing...';
+    gatewayStatusEl.style.color = '#888';
+    testGatewayBtnEl.disabled = true;
+
+    var headers = { 'Content-Type': 'application/json' };
+    var token = gatewayTokenEl.value;
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+
+    chrome.runtime.sendMessage({
+      type: 'testGateway',
+      url: url.replace(/\/+$/, '') + '/v1/models',
+      token: token
+    }, function (response) {
+      testGatewayBtnEl.disabled = false;
+      if (chrome.runtime.lastError) {
+        gatewayStatusEl.textContent = 'Extension error';
+        gatewayStatusEl.style.color = '#c00';
+        return;
+      }
+      if (response && response.ok) {
+        gatewayStatusEl.textContent = 'Connected!';
+        gatewayStatusEl.style.color = '#080';
+      } else {
+        gatewayStatusEl.textContent = response ? response.error : 'Failed to connect';
+        gatewayStatusEl.style.color = '#c00';
       }
     });
   });

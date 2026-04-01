@@ -35,7 +35,7 @@
   color: #000;
   padding: 8px;
   border: 1px solid #000;
-  border-radius: 5px;
+  border-radius: 2px;
   font-family: "Microsoft Sans Serif", "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 10pt;
   line-height: 1.4;
@@ -76,87 +76,73 @@
   color: #000;
 }
 
-/* Tip (pointer triangle) — using CSS borders */
+/* Tip — uses a simple div with no pseudo-elements */
 .clippy-tip {
-  position: absolute;
-  width: 0;
-  height: 0;
+  display: none;
 }
 
-/* Bottom-right: balloon above agent, tip points down-right */
-.clippy-balloon.clippy-top-left .clippy-tip {
-  bottom: -10px;
-  right: 16px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #000;
-}
-
-.clippy-balloon.clippy-top-left .clippy-tip::after {
+/* Use ::before and ::after directly on the balloon for the tip */
+.clippy-balloon::before,
+.clippy-balloon::after {
   content: '';
   position: absolute;
+  border-style: solid;
+}
+
+/* ── Balloon ABOVE agent (tip points down) ── */
+
+.clippy-balloon.clippy-top-left::before {
+  bottom: -11px;
+  right: 20px;
+  border-width: 11px 8px 0 8px;
+  border-color: #000 transparent transparent transparent;
+}
+.clippy-balloon.clippy-top-left::after {
+  bottom: -9px;
+  right: 21px;
+  border-width: 9px 7px 0 7px;
+  border-color: #FFC transparent transparent transparent;
+}
+
+.clippy-balloon.clippy-top-right::before {
+  bottom: -11px;
+  left: 20px;
+  border-width: 11px 8px 0 8px;
+  border-color: #000 transparent transparent transparent;
+}
+.clippy-balloon.clippy-top-right::after {
+  bottom: -9px;
+  left: 21px;
+  border-width: 9px 7px 0 7px;
+  border-color: #FFC transparent transparent transparent;
+}
+
+/* ── Balloon BELOW agent (tip points up) ── */
+
+.clippy-balloon.clippy-bottom-left::before {
   top: -11px;
-  left: -10px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #FFC;
+  right: 20px;
+  border-width: 0 8px 11px 8px;
+  border-color: transparent transparent #000 transparent;
+}
+.clippy-balloon.clippy-bottom-left::after {
+  top: -9px;
+  right: 21px;
+  border-width: 0 7px 9px 7px;
+  border-color: transparent transparent #FFC transparent;
 }
 
-/* Bottom-left: balloon above agent, tip points down-left */
-.clippy-balloon.clippy-top-right .clippy-tip {
-  bottom: -10px;
-  left: 16px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #000;
-}
-
-.clippy-balloon.clippy-top-right .clippy-tip::after {
-  content: '';
-  position: absolute;
+.clippy-balloon.clippy-bottom-right::before {
   top: -11px;
-  left: -10px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #FFC;
+  left: 20px;
+  border-width: 0 8px 11px 8px;
+  border-color: transparent transparent #000 transparent;
 }
-
-/* Top-right: balloon below agent, tip points up-right */
-.clippy-balloon.clippy-bottom-left .clippy-tip {
-  top: -10px;
-  right: 16px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #000;
-}
-
-.clippy-balloon.clippy-bottom-left .clippy-tip::after {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: -10px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #FFC;
-}
-
-/* Top-left: balloon below agent, tip points up-left */
-.clippy-balloon.clippy-bottom-right .clippy-tip {
-  top: -10px;
-  left: 16px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #000;
-}
-
-.clippy-balloon.clippy-bottom-right .clippy-tip::after {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: -10px;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #FFC;
+.clippy-balloon.clippy-bottom-right::after {
+  top: -9px;
+  left: 21px;
+  border-width: 0 7px 9px 7px;
+  border-color: transparent transparent #FFC transparent;
 }
 
 /* ==========================================================================
@@ -186,10 +172,11 @@
 }
 
 .clippy-context-menu-item {
-  padding: 4px 20px 4px 8px;
+  padding: 4px 20px 4px 22px;
   cursor: pointer;
   white-space: nowrap;
   color: #000;
+  position: relative;
 }
 
 .clippy-context-menu-item:hover {
@@ -204,7 +191,7 @@
 .clippy-context-menu-item.clippy-menu-active::before {
   content: '\2713';
   position: absolute;
-  left: 6px;
+  left: 8px;
 }
 
 .clippy-context-menu-separator {
@@ -212,4 +199,75 @@
   background: #808080;
   margin: 2px 4px;
   border-bottom: 1px solid #fff;
+}
+
+/* ==========================================================================
+   Ask Menu (click Clippy to ask AI)
+   ========================================================================== */
+
+.clippy-ask-menu {
+  position: fixed;
+  z-index: 2147483647;
+  background: #c0c0c0;
+  border: 2px outset #fff;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 2px;
+  font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
+  font-size: 11px;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.clippy-ask-item {
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #000;
+  border: 1px solid transparent;
+}
+
+.clippy-ask-item:hover {
+  background: #000080;
+  color: #fff;
+}
+
+.clippy-ask-input-row {
+  padding: 4px;
+  border-top: 1px solid #808080;
+  margin-top: 2px;
+  display: flex;
+  gap: 3px;
+}
+
+.clippy-ask-input {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 3px 4px;
+  font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
+  font-size: 11px;
+  border: 2px inset #fff;
+  background: #fff;
+  color: #000;
+  outline: none;
+}
+
+.clippy-ask-send {
+  background: #c0c0c0;
+  border: 2px outset #fff;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 1px 6px;
+  line-height: 1;
+  color: #000080;
+  flex-shrink: 0;
+}
+
+.clippy-ask-send:active {
+  border-style: inset;
+}
+
+.clippy-ask-send:hover {
+  color: #000;
 }
