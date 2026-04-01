@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=320">
+  <link rel="stylesheet" href="popup.css">
+  <title>Clippy Settings</title>
+</head>
+<body>
+
+  <!-- Title bar -->
+  <div class="titlebar">
+    <span>&#128206; Clippy — Settings</span>
+  </div>
+
+  <div class="window-body">
+
+    <!-- Enable/Disable -->
+    <fieldset class="group-box">
+      <legend>General</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="enabled" checked>
+        <label for="enabled">Enable Clippy on all pages</label>
+      </div>
+    </fieldset>
+
+    <!-- Agent selection -->
+    <fieldset class="group-box">
+      <legend>Agent</legend>
+      <div class="agent-preview" id="agentPreview">
+        <span class="agent-preview-placeholder">Loading...</span>
+      </div>
+      <div class="form-row">
+        <label for="agent">Choose agent:</label>
+        <select id="agent">
+          <option value="Bonzi">Bonzi</option>
+          <option value="Clippy" selected>Clippy</option>
+          <option value="F1">F1</option>
+          <option value="Genie">Genie</option>
+          <option value="Genius">Genius</option>
+          <option value="Links">Links</option>
+          <option value="Merlin">Merlin</option>
+          <option value="Peedy">Peedy</option>
+          <option value="Rocky">Rocky</option>
+          <option value="Rover">Rover</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <!-- Quip frequency -->
+    <fieldset class="group-box">
+      <legend>Quip Frequency</legend>
+      <p style="margin-bottom: 6px; color: #444;">How often should your agent speak up?</p>
+      <div class="freq-row">
+        <label for="quipMin">Every</label>
+        <input type="number" id="quipMin" min="5" max="300" value="30" step="5">
+        <span class="freq-sep">to</span>
+        <input type="number" id="quipMax" min="10" max="600" value="60" step="5">
+        <label>seconds</label>
+      </div>
+    </fieldset>
+
+    <!-- Action buttons -->
+    <div class="button-row">
+      <button class="btn btn-primary" id="saveBtn">OK</button>
+      <button class="btn" id="testBtn">Test Quip</button>
+    </div>
+
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span class="statusbar-cell" id="status">Ready</span>
+    <span class="statusbar-cell">v1.0.0</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
