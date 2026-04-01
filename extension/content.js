@@ -1377,6 +1377,12 @@
       return;
     }
 
+    // Don't overwrite an active balloon (AI response, user-triggered speak, etc)
+    if (this._balloon && !this._balloon._hidden) {
+      this._scheduleQuip();
+      return;
+    }
+
     var now = Date.now();
     if (now - this._lastQuipTime < 15000) {
       this._scheduleQuip();

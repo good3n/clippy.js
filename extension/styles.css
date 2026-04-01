@@ -208,7 +208,7 @@
 .clippy-ask-menu {
   position: fixed;
   z-index: 2147483647;
-  background: #c0c0c0;
+  background: #c0c0c0 !important;
   border: 2px outset #fff;
   box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
   padding: 2px;
@@ -216,6 +216,7 @@
   font-size: 11px;
   min-width: 200px;
   max-width: 280px;
+  color: #000 !important;
 }
 
 .clippy-ask-item {
@@ -224,7 +225,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #000;
+  color: #000 !important;
+  background: transparent !important;
   border: 1px solid transparent;
 }
 
@@ -247,9 +249,9 @@
   padding: 3px 4px;
   font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
   font-size: 11px;
-  border: 2px inset #fff;
-  background: #fff;
-  color: #000;
+  border: 2px inset #fff !important;
+  background: #fff !important;
+  color: #000 !important;
   outline: none;
 }
 
