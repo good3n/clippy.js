@@ -26,6 +26,9 @@ export class Agent {
     this._el = document.createElement('div');
     this._el.className = 'clippy';
     this._el.style.display = 'none';
+    this._el.style.position = 'fixed';
+    this._el.style.zIndex = '999999';
+    this._el.style.cursor = 'pointer';
     document.body.appendChild(this._el);
 
     this._animator = new Animator(this._el, path, data, sounds);
@@ -132,14 +135,15 @@ export class Agent {
       return;
     }
 
-    const rect = this._el.getBoundingClientRect();
-    if (!rect.top && !rect.left) {
-      const left = window.innerWidth * 0.8;
-      const top = (window.innerHeight + window.scrollY) * 0.8;
+    // Position agent if not already placed
+    if (!this._el.style.top || !this._el.style.left) {
+      const left = Math.min(window.innerWidth * 0.8, window.innerWidth - 150);
+      const top = Math.min(window.innerHeight * 0.8, window.innerHeight - 130);
       this._el.style.top = top + 'px';
       this._el.style.left = left + 'px';
     }
 
+    this._el.style.position = 'fixed';
     this.resume();
     return this.play('Show');
   }
