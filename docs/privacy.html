@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Clippy Agent</title>
+  <meta name="theme-color" content="#008080">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📎</text></svg>">
+  <style>
+    :root {
+      --win-bg: #c0c0c0;
+      --win-dark: #808080;
+      --win-light: #dfdfdf;
+      --win-white: #ffffff;
+      --win-black: #000000;
+      --win-blue: #000080;
+      --win-blue-light: #1084d0;
+      --win-cyan: #008080;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--win-cyan);
+      font-family: "Microsoft Sans Serif", "MS Sans Serif", "Segoe UI", Tahoma, Geneva, sans-serif;
+      font-size: 11px;
+      color: var(--win-black);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .window {
+      background: var(--win-bg);
+      border-top: 2px solid var(--win-white);
+      border-left: 2px solid var(--win-white);
+      border-right: 2px solid var(--win-black);
+      border-bottom: 2px solid var(--win-black);
+      box-shadow: inset 1px 1px 0 var(--win-light), inset -1px -1px 0 var(--win-dark);
+      max-width: 640px;
+      width: 100%;
+    }
+
+    .title-bar {
+      background: linear-gradient(90deg, var(--win-blue), var(--win-blue-light));
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      padding: 3px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .title-bar span { padding-left: 2px; }
+
+    .title-btn {
+      background: var(--win-bg);
+      border-top: 1px solid var(--win-white);
+      border-left: 1px solid var(--win-white);
+      border-right: 1px solid var(--win-black);
+      border-bottom: 1px solid var(--win-black);
+      width: 16px;
+      height: 14px;
+      font-size: 9px;
+      line-height: 12px;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      color: black;
+      display: inline-block;
+    }
+
+    .content {
+      padding: 16px 20px 20px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .updated {
+      color: var(--win-dark);
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 13px;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--win-dark);
+      padding-bottom: 2px;
+    }
+
+    p { margin-bottom: 10px; }
+
+    ul {
+      margin-left: 20px;
+      margin-bottom: 10px;
+    }
+
+    li { margin-bottom: 4px; }
+
+    a { color: var(--win-blue); }
+
+    .short-version {
+      background: var(--win-white);
+      border-top: 1px solid var(--win-dark);
+      border-left: 1px solid var(--win-dark);
+      border-right: 1px solid var(--win-white);
+      border-bottom: 1px solid var(--win-white);
+      padding: 10px 12px;
+      margin-top: 16px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="title-bar">
+      <span>📎 Privacy Policy</span>
+      <a href="/clippy-agent/" class="title-btn">×</a>
+    </div>
+    <div class="content">
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: April 1, 2026</p>
+
+      <h2>What this extension does</h2>
+      <p>Clippy Agent displays an animated character on webpages in your browser. It can optionally connect to an AI backend that you configure yourself.</p>
+
+      <h2>Data we collect</h2>
+      <p>None. We do not collect, store, transmit, or sell any user data.</p>
+
+      <h2>Data stored on your device</h2>
+      <p>The extension stores the following in your browser's local storage:</p>
+      <ul>
+        <li>Your selected agent character (e.g. "Clippy", "Merlin")</li>
+        <li>Whether AI features are enabled</li>
+        <li>Your AI gateway URL and token, if you choose to configure one</li>
+      </ul>
+      <p>This data never leaves your browser unless you enable AI features and configure your own gateway.</p>
+
+      <h2>AI features</h2>
+      <p>AI features are off by default. If you enable them, the extension sends page context (title, URL, visible text) to whatever gateway URL you configure. That's your server. We don't operate it, we don't have access to it, and we never see your queries or responses.</p>
+      <p>We don't provide, require, or request any API keys. We don't proxy requests through our servers. We have no servers.</p>
+
+      <h2>Remote resources</h2>
+      <p>The extension loads sprite sheets and animation data from unpkg.com (the npm registry CDN). These are static image and JSON files. No executable code is loaded remotely. unpkg.com may log standard HTTP request data per their own privacy policy.</p>
+
+      <h2>Analytics and tracking</h2>
+      <p>None. No analytics, no telemetry, no tracking pixels, no fingerprinting, no cookies.</p>
+
+      <h2>Third-party services</h2>
+      <p>We do not use any third-party analytics, advertising, or data collection services.</p>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li><strong>All URLs:</strong> Required to display the animated character on every webpage.</li>
+        <li><strong>Context menus:</strong> Right-click options for switching agents and asking about selected text.</li>
+        <li><strong>Storage:</strong> Saves your preferences locally in the browser.</li>
+      </ul>
+
+      <h2>Children's privacy</h2>
+      <p>We don't knowingly collect any information from anyone, including children under 13.</p>
+
+      <h2>Changes</h2>
+      <p>If this policy changes, the updated version will be posted here with a new date. Since we collect no data, there's not much to change.</p>
+
+      <h2>Contact</h2>
+      <p>Tom Gooden<br>
+      <a href="mailto:tom@goodendesign.com">tom@goodendesign.com</a><br>
+      <a href="https://github.com/good3n/clippy-agent">github.com/good3n/clippy-agent</a></p>
+
+      <div class="short-version">
+        We don't collect your data. We don't want your data. We don't have servers to put your data on. It's a paperclip with googly eyes.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
